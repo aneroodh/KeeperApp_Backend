@@ -1,7 +1,8 @@
 import express from "express";
 import cors from "cors";
-import connectDB from "./db.js";
+import getDb from "./db.js";
 import dotenv from "dotenv";
+import { ObjectId } from "mongodb";
 
 dotenv.config(); // Load environment variables before anything else
 
@@ -11,13 +12,92 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-// Connect to MongoDB
-connectDB();
 
-// Sample route
-app.get("/", (req, res) => {
-  res.send("KeeperApp API is running...");
+app.get('/loadData', async (req,res) => {
+  try{
+      console.log("load api called");
+      const db = await getDb('keeperApp');
+      const collection = db.collection('user_notes')
+      console.log("connected to collection user_notes");
+      const user1 = req.query.user || "aneroodh14";
+      console.log("Received user:", user1);
+      if (!user1) {
+          return res.status(400).json({ error: "User parameter is required" });
+      }
+      const data = await collection.find({user:user1}).toArray();
+      res.json(data);
+  }
+  catch(error){
+      console.error(error);
+      res.status(500).json({error : "Internal Server Error"})
+  }
+})
+
+app.post('/addNote', async (req, res) => {
+  try {
+    console.log("addNote API called");
+
+    const db = await getDb('keeperApp');
+    const collection = db.collection('user_notes');
+    console.log("Connected to collection user_notes");
+
+    const { user, title, content } = req.body;
+    console.log("Received data:", { user, title, content });
+
+    if (!user || !title || !content) {
+      return res.status(400).json({ error: "User, title, and content are required" });
+    }
+
+    const newNote = { user, title, content, createdAt: new Date() };
+    const result = await collection.insertOne(newNote);
+
+    if (!result.insertedId) {
+      return res.status(500).json({ error: "Failed to add note" });
+    }
+
+    // Fetch the newly inserted note
+    const insertedNote = await collection.findOne({ _id: result.insertedId });
+
+    res.status(201).json({ message: "Note added successfully", note: insertedNote });
+
+  } catch (error) {
+    console.error("Error adding note:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
+
+
+// import { ObjectId } from "mongodb";
+
+app.delete("/deleteNote/:id", async (req, res) => {
+  try {
+    console.log("Delete API called");
+
+    const db = await getDb("keeperApp");
+    const collection = db.collection("user_notes");
+    console.log("Connected to collection user_notes");
+
+    const noteId = req.params.id;
+    console.log("Received Note ID:", noteId);
+
+    if (!ObjectId.isValid(noteId)) {
+      return res.status(400).json({ error: "Invalid note ID" });
+    }
+
+    const result = await collection.deleteOne({ _id: new ObjectId(noteId) });
+
+    if (result.deletedCount === 0) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+
+    res.status(200).json({ message: "Note deleted successfully" });
+
+  } catch (error) {
+    console.error("Error deleting note:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
