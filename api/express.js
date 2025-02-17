@@ -1,10 +1,7 @@
 import express from "express";
 import cors from "cors";
 import getDb from "./db.js";
-import dotenv from "dotenv";
 import { ObjectId } from "mongodb";
-
-dotenv.config(); // Load environment variables before anything else
 
 const app = express();
 
@@ -97,7 +94,6 @@ app.delete("/deleteNote/:id", async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 
 module.exports = (req, res) => {
   app(req, res);
