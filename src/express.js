@@ -9,7 +9,7 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-
+app.get('/',(req,res) => {res.json("hello aneroodh")})
 app.get('/loadData', async (req,res) => {
   try{
       console.log("load api called");
@@ -95,6 +95,5 @@ app.delete("/deleteNote/:id", async (req, res) => {
   }
 });
 
-module.exports = (req, res) => {
-  app(req, res);
-};
+// app.listen(5000, () => console.log("Server ready on port 5000."));
+export default app;
