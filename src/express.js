@@ -123,9 +123,9 @@ app.put("/updateNote/:id", async (req, res) => {
       // { returnDocument: "after" } // Return the updated document
     );
 
-    if (!updatedNote.value) {
-      return res.status(404).json({ error: "Note not found" });
-    }
+    // if (!updatedNote.value) {
+    //   return res.status(404).json({ error: "Note not found" });
+    // }
 
     res.status(200);
 
