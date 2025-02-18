@@ -16,7 +16,7 @@ app.get('/loadData', async (req,res) => {
       const db = await getDb('keeperApp');
       const collection = db.collection('user_notes')
       console.log("connected to collection user_notes");
-      const user1 = req.query.user || "aneroodh14";
+      const user1 = req.query.user;
       console.log("Received user:", user1);
       if (!user1) {
           return res.status(400).json({ error: "User parameter is required" });
@@ -120,14 +120,14 @@ app.put("/updateNote/:id", async (req, res) => {
     const updatedNote = await collection.findOneAndUpdate(
       { _id: new ObjectId(noteId) },
       { $set: { title, content, updatedAt: new Date() } }, // Update the note with new data
-      { returnDocument: "after" } // Return the updated document
+      // { returnDocument: "after" } // Return the updated document
     );
 
     if (!updatedNote.value) {
       return res.status(404).json({ error: "Note not found" });
     }
 
-    res.status(200).json({ message: "Note updated successfully", note: updatedNote.value });
+    res.status(200);
 
   } catch (error) {
     console.error("Error updating note:", error);
