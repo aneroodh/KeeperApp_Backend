@@ -95,5 +95,46 @@ app.delete("/deleteNote/:id", async (req, res) => {
   }
 });
 
+app.put("/updateNote/:id", async (req, res) => {
+  try {
+    console.log("Update API called");
+
+    const db = await getDb("keeperApp");
+    const collection = db.collection("user_notes");
+    console.log("Connected to collection user_notes");
+
+    const noteId = req.params.id;
+    const { title, content } = req.body;
+    console.log("Received Note ID:", noteId);
+    console.log("Received Data:", { title, content });
+
+    if (!ObjectId.isValid(noteId)) {
+      return res.status(400).json({ error: "Invalid note ID" });
+    }
+
+    if (!title || !content) {
+      return res.status(400).json({ error: "Title and content are required" });
+    }
+
+    // Update the note in the database
+    const updatedNote = await collection.findOneAndUpdate(
+      { _id: new ObjectId(noteId) },
+      { $set: { title, content, updatedAt: new Date() } }, // Update the note with new data
+      { returnDocument: "after" } // Return the updated document
+    );
+
+    if (!updatedNote.value) {
+      return res.status(404).json({ error: "Note not found" });
+    }
+
+    res.status(200).json({ message: "Note updated successfully", note: updatedNote.value });
+
+  } catch (error) {
+    console.error("Error updating note:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
+
 // app.listen(5000, () => console.log("Server ready on port 5000."));
 export default app;
