@@ -7,7 +7,13 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+app.options("*", cors()); // Handle preflight requests
+
 
 app.get('/',(req,res) => {res.json("hello aneroodh")})
 app.get('/loadData', async (req,res) => {
