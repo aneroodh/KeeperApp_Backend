@@ -95,39 +95,32 @@ app.delete("/deleteNote/:id", async (req, res) => {
   }
 });
 
-app.put("/updateNote/:id", async (req, res) => {
+app.put('/updateNote', async (req, res) => {
   try {
-    console.log("Update API called");
+    console.log("updateNote API called");
 
-    const db = await getDb("keeperApp");
-    const collection = db.collection("user_notes");
+    const db = await getDb('keeperApp');
+    const collection = db.collection('user_notes');
     console.log("Connected to collection user_notes");
 
-    const noteId = req.params.id;
-    const { title, content } = req.body;
-    console.log("Received Note ID:", noteId);
-    console.log("Received Data:", { title, content });
+    const { id, title, content } = req.body;
+    console.log("Received data:", { id, title, content });
 
-    if (!ObjectId.isValid(noteId)) {
-      return res.status(400).json({ error: "Invalid note ID" });
+    if (!id || !title || !content) {
+      return res.status(400).json({ error: "ID, title, and content are required" });
     }
 
-    if (!title || !content) {
-      return res.status(400).json({ error: "Title and content are required" });
-    }
-
-    // Update the note in the database
-    const updatedNote = await collection.findOneAndUpdate(
-      { _id: new ObjectId(noteId) },
-      { $set: { title, content, updatedAt: new Date() } }, // Update the note with new data
-      // { returnDocument: "after" } // Return the updated document
+    const result = await collection.findOneAndUpdate(
+      { _id: new ObjectId(id) }, 
+      { $set: { title, content, updatedAt: new Date() } },
+      { returnDocument: "after" } 
     );
 
-    // if (!updatedNote.value) {
-    //   return res.status(404).json({ error: "Note not found" });
-    // }
+    if (!result.value) {
+      return res.status(404).json({ error: "Note not found" });
+    }
 
-    res.status(200);
+    res.status(200).json({ message: "Note updated successfully", note: result.value });
 
   } catch (error) {
     console.error("Error updating note:", error);
